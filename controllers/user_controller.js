@@ -1,6 +1,9 @@
+const bcrypt = require("bcrypt");
+
 const Users = require("../models/user");
 const print = require("./error_controller");
 const mailer = require("../mailers/mail");
+const saltRounds = 10;
 
 module.exports.signUp = function (req, res) {
   if (req.isAuthenticated()) {
@@ -10,7 +13,14 @@ module.exports.signUp = function (req, res) {
 };
 module.exports.createAccount = async function (req, res) {
   try {
-    await Users.create(req.body);
+    let hash = await bcrypt.hash(req.body.password, saltRounds);
+    // req.password = hash;
+
+    await Users.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: hash,
+    });
     return res.redirect("/");
   } catch (error) {
     return print("Error in signup", "error", error);
